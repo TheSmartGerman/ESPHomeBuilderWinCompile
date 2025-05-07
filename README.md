@@ -29,6 +29,8 @@ This Project supports:
 
 It will copy your remote data local, compile and update.
 
+Any further questinos have a look here: [Homeassistant Forum](https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-windows-computer/675385/16)
+
 
 
 
