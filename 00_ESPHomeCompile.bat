@@ -40,7 +40,8 @@ echo ####   2 - update all local fils          ####
 echo ####   3 - ESPHome update                 #### 
 echo ####   4 - ipadress                       #### 
 echo ####   5 - sendto - entry                 ####
-echo ####   6 - pio prune                      #### 
+echo ####   6 - pio prune                      ####
+echo ####   9 - Exit without erase             ####
 echo ####   0 - Cleanup and Exit               #### 
 echo ####                                      #### 
 echo ##############################################
@@ -54,18 +55,19 @@ if /i "%opt%"=="3" goto:update
 if /i "%opt%"=="4" goto:ipadress
 if /i "%opt%"=="5" goto:sendto
 if /i "%opt%"=="6" goto:cleanup
-if /i "%opt%"=="0" goto:exit
+if /i "%opt%"=="9" goto:exit
+if /i "%opt%"=="0" goto:clearandexit
 echo Wrong choice, trink less beer :-P
 goto:startmenu
 
 :update
 pip3 install esphome -U
-goto:startmenu
+goto:startup
 
 :ipadress
 set /P hassip=Set new IP Address:
 echo %hassip% > %TMP%\ip.tmp 
-goto:startmenu
+goto:startup
 
 
 :sendto
@@ -103,12 +105,17 @@ set count=0
 
 rem Split the parameters on spaces but respect the quotes
 echo Files given:
+color 1
 for %%G IN (!params!) do (
   set /a count+=1
   rem copy filename + extention into items
   set "item_!count!=%%~nG%%~xG"
   echo !count! %%~nG%%~xG
 )
+
+rem for /F "usebackq delims=" %%G in (`some-producer-of-quoted-names`) do (
+rem   echo %%G
+rem )
 
 rem list the parameters
 for /L %%n in (1,1,!count!) DO (
@@ -123,9 +130,12 @@ rem pio system prune --dry-run
 pio system prune
 goto:startmenu
 
-:exit
+:clearandexit
 timeout 10 > NUL
 rem del /f /s /q %TMP%\esphome\
 rmdir /s /q %TMP%\esphome\
 REM ** The exit is important, so the cmd.ex doesn't try to execute commands after ampersands
+exit
+
+:exit
 exit
