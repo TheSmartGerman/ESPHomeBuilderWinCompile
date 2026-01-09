@@ -4,10 +4,20 @@ rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-
 
 :startup
 rem read ip settings
-if not exist %TMP%\ip.tmp (
-	set hassip=192.168.178.100
+set "iniFile=%TMP%\ip.tmp"
+set "keyToFind_IP=hassip"
+set "hassip=192.168.178.100"
+
+if not exist %iniFile% (
+  :: Erstellt eine neue INI-Datei oder überschreibt sie
+  echo [Settings] > %iniFile%
+  echo IP=%hassip% >> %iniFile%
+  echo. >> %iniFile%
 ) else (
-	set /p hassip= < %TMP%\ip.tmp
+	rem old: set /p hassip= < %%TMP%%\ip.tmp
+  for /f "tokens=1,2 delims==" %%a in ('findstr /i "%keyToFind_IP%" "%iniFile%"') do (
+    set "%%a=%%b"
+  )
 )
 
 rem read esphome version
@@ -66,9 +76,11 @@ goto:startup
 
 :ipadress
 set /P hassip=Set new IP Address:
-echo %hassip% > %TMP%\ip.tmp 
+:: Erstellt eine neue INI-Datei oder überschreibt sie
+echo [Settings] > %iniFile%
+echo IP=%hassip% >> %iniFile%
+echo. >> %iniFile%
 goto:startup
-
 
 :sendto
 color

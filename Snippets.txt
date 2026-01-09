@@ -1,0 +1,62 @@
+1. Einfaches Auslesen eines bekannten Schlüssels
+
+@echo off
+set "iniFile=config.ini"
+set "keyToFind=MeinSchluessel"
+
+for /f "tokens=1,2 delims==" %%a in ('findstr /i "%keyToFind%" "%iniFile%"') do (
+    set "%%a=%%b"
+)
+
+echo Der Wert ist: %MeinSchluessel%
+pause
+
+2. Lesen innerhalb einer bestimmten Sektion
+
+@echo off
+setlocal enabledelayedexpansion
+set "iniFile=config.ini"
+set "targetSection=[Einstellungen]"
+set "targetKey=Pfad"
+
+set "inSection=0"
+for /f "usebackq delims=" %%a in ("%iniFile%") do (
+    set "line=%%a"
+    if "!line!"=="%targetSection%" (
+        set "inSection=1"
+    ) else if "%%a"=="[%%a]" (
+        set "inSection=0"
+    )
+    
+    if "!inSection!"=="1" (
+        for /f "tokens=1,2 delims==" %%i in ("%%a") do (
+            if "%%i"=="%targetKey%" (
+                set "finalValue=%%j"
+            )
+        )
+    )
+)
+
+echo Pfad ist: %finalValue%
+endlocal
+
+### Schreiben
+
+@echo off
+:: Erstellt eine neue INI-Datei oder überschreibt sie
+echo [Einstellungen] > config.ini
+echo Benutzer=Admin >> config.ini
+echo Sprache=DE >> config.ini
+echo. >> config.ini
+:: Fügt einen neuen Abschnitt hinzu
+echo [Farben] >> config.ini
+echo Hintergrund=Blau >> config.ini
+
+echo INI-Datei wurde erfolgreich erstellt.
+pause
+
+
+>: Erstellt eine neue Datei oder überschreibt eine bestehende.
+>>: Hängt Text an eine bestehende Datei an.
+echo.: Erzeugt eine Leerzeile in der INI-Datei.
+Stellen Sie sicher, dass keine Leerzeichen zwischen Key, = und Value sind, wenn das Programm dies nicht unterstützt. 
