@@ -4,57 +4,68 @@ rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-
 
 :startup
 rem read ip settings
+echo Gathering settings...
 if not exist %TMP%\ip.tmp (
 	set hassip=192.168.178.100
 ) else (
 	set /p hassip= < %TMP%\ip.tmp
 )
 
-rem read esphome version
+rem read esphome local version
 FOR /F "tokens=* USEBACKQ" %%F IN (`esphome version`) DO (
 SET espversion=%%F
 )
 
+rem read esphome remote version
+for /f "tokens=1,3" %%A in ('pip list --outdated --format=columns ^| findstr /I /R /C:"^esphome"') do set "ESPHOME_REMOTE=%%B"
+if "%ESPHOME_REMOTE%"=="" set "ESPHOME_REMOTE=%espversion%"
+
 :startmenu
 rem color 02
 echo. 
-echo ############################################## 
-echo ####                                      #### 
-echo ####         ESPHome Win Compile          #### 
-echo ####         ===================          #### 
-echo ####                                      #### 
-echo ####   Created by: TheSmartGerman         #### 
-echo ####                                      #### 
-echo ############################################## 
-echo ####                                      ####
-echo ####  Current Settings:                   ####
-echo ####  ESPHome %espversion%           ####
-echo ####  Remote IP Address: %hassip%  ####
-echo ####                                      ####
-echo ####                                      ####
-echo ####                                      ####
-echo ############################################## 
-echo ####                                      #### 
-echo ####   1 - Update given file(s)           ####
-echo ####   2 - update all local fils          ####
-echo ####   3 - ESPHome update                 #### 
-echo ####   4 - ipadress                       #### 
-echo ####   5 - sendto - entry                 ####
-echo ####   6 - pio prune                      ####
-echo ####   9 - Exit without erase             ####
-echo ####   0 - Cleanup and Exit               #### 
-echo ####                                      #### 
-echo ##############################################
+echo ################################################# 
+echo ####                                         #### 
+echo ####          ESPHome Win Compile            #### 
+echo ####          ===================            #### 
+echo ####                                         #### 
+echo ####    Created by: TheSmartGerman           #### 
+echo ####                                         #### 
+echo ################################################# 
+echo ####                                         ####
+echo ####  Current Settings:                      ####
+echo ####  Installed ESPHome %espversion%   ####
+echo ####  Remote ESPHome %ESPHOME_REMOTE%  ####
+echo ####                                         ####
+echo ####  Remote IP Address: %hassip%     ####
+echo ####                                         ####
+echo ####                                         ####
+echo ####                                         ####
+echo ################################################# 
+echo ####                                         #### 
+echo ####   1 - Update given file(s)              ####
+echo ####   2 - update all local files            ####
+echo ####   3 - update files of list              ####
+echo ####   4 - ESPHome update                    #### 
+echo ####   5 - ipadress                          #### 
+echo ####   6 - sendto - entry                    ####
+echo ####   7 - pio prune                         ####
+echo ####   8 - free                              ####
+echo ####   9 - Exit without erase                ####
+echo ####   0 - Cleanup and Exit                  #### 
+echo ####                                         #### 
+echo #################################################
 echo.
 
 set /P opt=Your choice:
 color
 if /i "%opt%"=="1" goto:compile
 if /i "%opt%"=="2" goto:upall
-if /i "%opt%"=="3" goto:update
-if /i "%opt%"=="4" goto:ipadress
-if /i "%opt%"=="5" goto:sendto
-if /i "%opt%"=="6" goto:cleanup
+if /i "%opt%"=="3" goto:upall_list
+if /i "%opt%"=="4" goto:update
+if /i "%opt%"=="5" goto:ipadress
+if /i "%opt%"=="6" goto:sendto
+if /i "%opt%"=="7" goto:cleanup_pio
+if /i "%opt%"=="8" echo free && timeout 5 > NUL & goto:startmenu
 if /i "%opt%"=="9" goto:exit
 if /i "%opt%"=="0" goto:clearandexit
 echo Wrong choice, trink less beer :-P
@@ -84,6 +95,14 @@ goto:startmenu
 :upall
 rem esphome -q update-all [directory containing yaml files]
 esphome -q update-all .
+
+:upall_list
+rem update all yaml files from a list
+if not exist %TMP%\list.tmp (
+	set hassip=192.168.178.100
+) else (
+	set /p hassip= < %TMP%\list.tmp
+)
 
 :compile
 rem make sure no old data exists, may cause some trouble
@@ -125,12 +144,13 @@ for /L %%n in (1,1,!count!) DO (
 )
 goto:startmenu
 
-:cleanup
+:cleanup_pio
 rem pio system prune --dry-run
 pio system prune
 goto:startmenu
 
 :clearandexit
+echo Cleaning up temporary files...
 timeout 10 > NUL
 rem del /f /s /q %TMP%\esphome\
 rmdir /s /q %TMP%\esphome\
