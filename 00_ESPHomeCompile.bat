@@ -23,7 +23,16 @@ echo Check for latest esphome version...
 for /f "tokens=1,3" %%A in ('pip list --outdated --format=columns ^| findstr /I /R /C:"^esphome "') do set "ESPHOME_REMOTE=Version: %%B"
 if "%ESPHOME_REMOTE%"=="" set "ESPHOME_REMOTE=%espversion%"
 
+rem run this only once to get parameters for drag and drop
+rem https://stackoverflow.com/questions/1243240/drag-and-drop-batch-file-for-multiple-files
+setlocal ENABLEDELAYEDEXPANSION
+rem Take the cmd-line, remove all until the first parameter
+echo Gathering files to compile...
+set "params=!cmdcmdline:~0,-1!"
+set "params=!params:*" =!"
+
 :startmenu
+rem cls
 rem color 02
 echo. 
 echo ################################################# 
@@ -36,8 +45,8 @@ echo ####                                         ####
 echo ################################################# 
 echo ####                                         ####
 echo ####  Current Settings:                      ####
-echo ####  Installed ESPHome %espversion%   ####
-echo ####  Remote ESPHome %ESPHOME_REMOTE%  ####
+echo ####  Installed ESPHome %espversion%    ####
+echo ####  Remote ESPHome %ESPHOME_REMOTE%       ####
 echo ####                                         ####
 echo ####  Remote IP Address: %hassip%     ####
 echo ####                                         ####
@@ -49,8 +58,8 @@ echo ####   1 - Update given file(s)              ####
 echo ####   2 - update all local files            ####
 echo ####   3 - update files of list              ####
 echo ####   4 - ESPHome update                    #### 
-echo ####   5 - ipadress                          #### 
-echo ####   6 - sendto - entry                    ####
+echo ####   5 - Set HA-Server ipadress            #### 
+echo ####   6 - Copy To "sendto - entry"          ####
 echo ####   7 - pio prune                         ####
 echo ####   8 - free                              ####
 echo ####   9 - Exit without erase                ####
@@ -118,11 +127,6 @@ rem change work path + drive
 cd /D %TMP%\esphome\
 
 
-rem https://stackoverflow.com/questions/1243240/drag-and-drop-batch-file-for-multiple-files
-setlocal ENABLEDELAYEDEXPANSION
-rem Take the cmd-line, remove all until the first parameter
-set "params=!cmdcmdline:~0,-1!"
-set "params=!params:*" =!"
 set count=0
 
 rem Split the parameters on spaces but respect the quotes
