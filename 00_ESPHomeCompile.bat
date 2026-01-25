@@ -4,7 +4,8 @@ rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-
 
 :startup
 rem read ip settings
-echo Gathering settings...
+echo Gathering settings:
+echo Read IP Address...
 if not exist %TMP%\ip.tmp (
 	set hassip=192.168.178.100
 ) else (
@@ -12,12 +13,14 @@ if not exist %TMP%\ip.tmp (
 )
 
 rem read esphome local version
+echo Read ESPHome version...
 FOR /F "tokens=* USEBACKQ" %%F IN (`esphome version`) DO (
 SET espversion=%%F
 )
 
 rem read esphome remote version
-for /f "tokens=1,3" %%A in ('pip list --outdated --format=columns ^| findstr /I /R /C:"^esphome"') do set "ESPHOME_REMOTE=%%B"
+echo Check for latest esphome version...
+for /f "tokens=1,3" %%A in ('pip list --outdated --format=columns ^| findstr /I /R /C:"^esphome "') do set "ESPHOME_REMOTE=Version: %%B"
 if "%ESPHOME_REMOTE%"=="" set "ESPHOME_REMOTE=%espversion%"
 
 :startmenu
