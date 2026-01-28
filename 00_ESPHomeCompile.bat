@@ -30,6 +30,7 @@ rem Take the cmd-line, remove all until the first parameter
 echo Gathering files to compile...
 set "params=!cmdcmdline:~0,-1!"
 set "params=!params:*" =!"
+echo params
 
 :startmenu
 rem cls
@@ -131,13 +132,16 @@ set count=0
 
 rem Split the parameters on spaces but respect the quotes
 echo Files given:
-color 1
+echo.
+color 84
 for %%G IN (!params!) do (
   set /a count+=1
   rem copy filename + extention into items
   set "item_!count!=%%~nG%%~xG"
   echo !count! %%~nG%%~xG
 )
+color 01
+echo.
 
 rem for /F "usebackq delims=" %%G in (`some-producer-of-quoted-names`) do (
 rem   echo %%G
