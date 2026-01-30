@@ -132,6 +132,21 @@ rem echo %~f0
 copy /Y %~f0 %userprofile%\AppData\Roaming\Microsoft\Windows\SendTo\
 goto:startmenu
 
+rem ################################################# 
+rem #### update all                              ####
+rem #################################################
+:get_remote_files
+rem make sure no old data exists, may cause some trouble
+if exist %TMP%\esphome\ rmdir /s /q %TMP%\esphome\
+
+rem copy data from network share to local temp path
+xcopy /e /k /h /i \\%hassip%\config\esphome\*.* %TMP%\esphome\
+
+rem change work path + drive
+cd /D %TMP%\esphome\
+
+? Exit ? 
+
 
 rem ################################################# 
 rem #### update all                              ####
@@ -139,12 +154,14 @@ rem #################################################
 :upall
 rem esphome -q update-all [directory containing yaml files]
 rem change work path + drive
+gosub:get_remote_files
 esphome -q update-all .
 
 rem ################################################# 
 rem #### update list                             ####
 rem #################################################
 :upall_list
+gosub:get_remote_files
 rem update all yaml files from a list
 if not exist %TMP%\list.tmp (
 	set hassip=192.168.178.100
@@ -156,14 +173,7 @@ rem #################################################
 rem #### compile                                 ####
 rem #################################################
 :compile
-rem make sure no old data exists, may cause some trouble
-if exist %TMP%\esphome\ rmdir /s /q %TMP%\esphome\
-
-rem copy data from network share to local temp path
-xcopy /e /k /h /i \\%hassip%\config\esphome\*.* %TMP%\esphome\
-
-rem change work path + drive
-cd /D %TMP%\esphome\
+gosub:get_remote_files
 
 set count=0
 
