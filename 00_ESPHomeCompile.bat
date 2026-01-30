@@ -2,6 +2,9 @@
 title ESPHome Win Compile
 rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-windows-computer/675385
 
+rem choose: info, verbose
+set debug=info 
+
 rem run this only once to get parameters for drag and drop
 rem https://stackoverflow.com/questions/1243240/drag-and-drop-batch-file-for-multiple-files
 setlocal ENABLEDELAYEDEXPANSION
@@ -9,15 +12,19 @@ rem Take the cmd-line, remove all until the first parameter
 echo Gathering files to compile...
 set "params=!cmdcmdline:~0,-1!"
 set "params=!params:*" =!"
-echo Files: %params%
+if %debug%=="info"||"verbose" (
+  echo Files: %params%
+)
 
 :startup
 rem read ip settings
 echo Gathering settings:
 echo Read IP Address...
 if not exist %TMP%\ip.tmp (
+  if %debug%=="verbose" echo Settings file not exits...
 	set hassip=192.168.178.100
 ) else (
+  if %debug%=="verbose" echo Read Settings from file...
 	set /p hassip= < %TMP%\ip.tmp
 )
 
@@ -125,11 +132,13 @@ rem echo %~f0
 copy /Y %~f0 %userprofile%\AppData\Roaming\Microsoft\Windows\SendTo\
 goto:startmenu
 
+
 rem ################################################# 
 rem #### update all                              ####
 rem #################################################
 :upall
 rem esphome -q update-all [directory containing yaml files]
+rem change work path + drive
 esphome -q update-all .
 
 rem ################################################# 
@@ -155,6 +164,7 @@ xcopy /e /k /h /i \\%hassip%\config\esphome\*.* %TMP%\esphome\
 
 rem change work path + drive
 cd /D %TMP%\esphome\
+
 set count=0
 
 rem Split the parameters on spaces but respect the quotes
