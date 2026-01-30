@@ -2,6 +2,15 @@
 title ESPHome Win Compile
 rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-windows-computer/675385
 
+rem run this only once to get parameters for drag and drop
+rem https://stackoverflow.com/questions/1243240/drag-and-drop-batch-file-for-multiple-files
+setlocal ENABLEDELAYEDEXPANSION
+rem Take the cmd-line, remove all until the first parameter
+echo Gathering files to compile...
+set "params=!cmdcmdline:~0,-1!"
+set "params=!params:*" =!"
+echo Files: %params%
+
 :startup
 rem read ip settings
 echo Gathering settings:
@@ -21,17 +30,20 @@ SET espversion=%%F
 rem read esphome remote version
 echo Check for latest esphome version...
 for /f "tokens=1,3" %%A in ('pip list --outdated --format=columns ^| findstr /I /R /C:"^esphome "') do set "ESPHOME_REMOTE=Version: %%B"
-if "%ESPHOME_REMOTE%"=="" set "ESPHOME_REMOTE=%espversion%"
 
-rem run this only once to get parameters for drag and drop
-rem https://stackoverflow.com/questions/1243240/drag-and-drop-batch-file-for-multiple-files
-setlocal ENABLEDELAYEDEXPANSION
-rem Take the cmd-line, remove all until the first parameter
-echo Gathering files to compile...
-set "params=!cmdcmdline:~0,-1!"
-set "params=!params:*" =!"
-echo params
+rem check if remote / no outdated version is emtpy, set local version
+if "%ESPHOME_REMOTE%"=="" set "ESPHOME_REMOTE=%ESPHOME_LOCAL%"
 
+rem if new version found, ask for update
+if "%ESPHOME_REMOTE%" != %ESPHOME_LOCAL% (
+  set /P opt=New ESPHome version found! Do you like to update (y/n)?
+  if /i "%opt%"=="y" goto:update
+  echo Update skipped...  
+)
+
+rem ################################################# 
+rem #### startmenue                              ####
+rem #################################################
 :startmenu
 rem cls
 rem color 02
@@ -46,7 +58,7 @@ echo ####                                         ####
 echo ################################################# 
 echo ####                                         ####
 echo ####  Current Settings:                      ####
-echo ####  Installed ESPHome %espversion%    ####
+echo ####  Installed ESPHome %ESPHOME_LOCAL%    ####
 echo ####  Remote ESPHome %ESPHOME_REMOTE%       ####
 echo ####                                         ####
 echo ####  Remote IP Address: %hassip%     ####
@@ -84,16 +96,24 @@ if /i "%opt%"=="0" goto:clearandexit
 echo Wrong choice, trink less beer :-P
 goto:startmenu
 
+rem ################################################# 
+rem #### esphome update                          ####
+rem #################################################
 :update
 pip3 install esphome -U
 goto:startup
 
+rem ################################################# 
+rem #### set ipaddress                           ####
+rem #################################################
 :ipadress
 set /P hassip=Set new IP Address:
 echo %hassip% > %TMP%\ip.tmp 
 goto:startup
 
-
+rem ################################################# 
+rem #### sentto                                  ####
+rem #################################################
 :sendto
 color
 rem copy batch file to sendTo menue, if it's not already there
@@ -105,10 +125,16 @@ rem echo %~f0
 copy /Y %~f0 %userprofile%\AppData\Roaming\Microsoft\Windows\SendTo\
 goto:startmenu
 
+rem ################################################# 
+rem #### update all                              ####
+rem #################################################
 :upall
 rem esphome -q update-all [directory containing yaml files]
 esphome -q update-all .
 
+rem ################################################# 
+rem #### update list                             ####
+rem #################################################
 :upall_list
 rem update all yaml files from a list
 if not exist %TMP%\list.tmp (
@@ -117,6 +143,9 @@ if not exist %TMP%\list.tmp (
 	set /p hassip= < %TMP%\list.tmp
 )
 
+rem ################################################# 
+rem #### compile                                 ####
+rem #################################################
 :compile
 rem make sure no old data exists, may cause some trouble
 if exist %TMP%\esphome\ rmdir /s /q %TMP%\esphome\
@@ -126,8 +155,6 @@ xcopy /e /k /h /i \\%hassip%\config\esphome\*.* %TMP%\esphome\
 
 rem change work path + drive
 cd /D %TMP%\esphome\
-
-
 set count=0
 
 rem Split the parameters on spaces but respect the quotes
@@ -155,11 +182,17 @@ for /L %%n in (1,1,!count!) DO (
 )
 goto:startmenu
 
+rem ################################################# 
+rem #### cleanup_pio                             ####
+rem #################################################
 :cleanup_pio
 rem pio system prune --dry-run
 pio system prune
 goto:startmenu
 
+rem ################################################# 
+rem ####  clear and exit                         ####
+rem #################################################
 :clearandexit
 echo Cleaning up temporary files...
 timeout 10 > NUL
@@ -168,5 +201,8 @@ rmdir /s /q %TMP%\esphome\
 REM ** The exit is important, so the cmd.ex doesn't try to execute commands after ampersands
 exit
 
+rem ################################################# 
+rem ####   exit                                  ####
+rem #################################################
 :exit
 exit
