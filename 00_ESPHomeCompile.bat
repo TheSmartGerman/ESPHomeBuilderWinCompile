@@ -16,15 +16,15 @@ rem read ip settings
 echo Gathering settings:
 echo Read IP Address...
 if not exist %TMP%\ip.tmp (
-	set hassip=192.168.178.100
+  set hassip=192.168.178.100
 ) else (
-	set /p hassip= < %TMP%\ip.tmp
+  for /f "usebackq delims=" %%A in (%TMP%\ip.tmp) do set "hassip=%%A"
 )
 
 rem read esphome local version
 echo Read ESPHome version...
 FOR /F "tokens=* USEBACKQ" %%F IN (`esphome version`) DO (
-SET espversion=%%F
+  SET ESPHOME_LOCAL=%%F
 )
 
 rem read esphome remote version
@@ -35,11 +35,20 @@ rem check if remote / no outdated version is emtpy, set local version
 if "%ESPHOME_REMOTE%"=="" set "ESPHOME_REMOTE=%ESPHOME_LOCAL%"
 
 rem if new version found, ask for update
-if "%ESPHOME_REMOTE%" != %ESPHOME_LOCAL% (
-  set /P opt=New ESPHome version found! Do you like to update (y/n)?
-  if /i "%opt%"=="y" goto:update
-  echo Update skipped...  
+if "%ESPHOME_REMOTE%" NEQ "%ESPHOME_LOCAL%" (
+  :ask_update
+  set opt=""
+  set /P opt="New ESPHome version found! Do you like to update (y/n)? "
+  set "opt=%opt:~0,1%"
+  if /I "%opt%"=="y" goto:update
+  if /I "%opt%"=="n" (
+    echo Update skipped...  
+    goto:startmenu
+  )
+  echo Please answer y or n.
+  goto:ask_update
 )
+
 
 rem ################################################# 
 rem #### startmenue                              ####
@@ -81,7 +90,8 @@ echo ####                                         ####
 echo #################################################
 echo.
 
-set /P opt=Your choice:
+  set /P opt="Your choice: "
+  set "opt=%opt:~0,1%"
 color
 if /i "%opt%"=="1" goto:compile
 if /i "%opt%"=="2" goto:upall
