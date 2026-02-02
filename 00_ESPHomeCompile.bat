@@ -1,4 +1,4 @@
-@echo off
+ @echo off
 title ESPHome Win Compile
 rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-windows-computer/675385
 
@@ -119,7 +119,7 @@ rem #################################################
 :ipadress
 set /P hassip=Set new IP Address:
 echo %hassip% > %TMP%\ip.tmp 
-goto:startup
+goto:startmenu
 
 rem ################################################# 
 rem #### sentto                                  ####
