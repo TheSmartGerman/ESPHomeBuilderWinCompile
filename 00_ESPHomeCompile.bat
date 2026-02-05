@@ -38,8 +38,8 @@ rem if new version found, ask for update
 if "%ESPHOME_REMOTE%" NEQ "%ESPHOME_LOCAL%" (
   :ask_update
   set opt=""
-  set /P opt="New ESPHome version found! Do you like to update (y/n)? "
-  set "opt=%opt:~0,1%"
+  set /P opt="New ESPHome version found! Do you like to update (y/n)?"
+  rem set "opt=%opt:~0,1%"
   if /I "%opt%"=="y" goto:update
   if /I "%opt%"=="n" (
     echo Update skipped...  
@@ -48,7 +48,6 @@ if "%ESPHOME_REMOTE%" NEQ "%ESPHOME_LOCAL%" (
   echo Please answer y or n.
   goto:ask_update
 )
-
 
 rem ################################################# 
 rem #### startmenue                              ####
@@ -90,8 +89,8 @@ echo ####                                         ####
 echo #################################################
 echo.
 
-  set /P opt="Your choice: "
-  set "opt=%opt:~0,1%"
+set /P opt="Your choice: "
+set "opt=%opt:~0,1%"
 color
 if /i "%opt%"=="1" goto:compile
 if /i "%opt%"=="2" goto:upall
