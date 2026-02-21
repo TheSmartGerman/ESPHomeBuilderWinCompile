@@ -84,7 +84,7 @@ echo ####   4 - ESPHome update                    ####
 echo ####   5 - Set HA-Server ipadress            #### 
 echo ####   6 - Copy To "sendto - entry"          ####
 echo ####   7 - pio prune                         ####
-echo ####   8 - free                              ####
+echo ####   8 - Update pip                        ####
 echo ####   9 - Exit without erase                ####
 echo ####   0 - Cleanup and Exit                  #### 
 echo ####                                         #### 
@@ -101,7 +101,7 @@ if /i "%opt%"=="4" goto:update
 if /i "%opt%"=="5" goto:ipadress
 if /i "%opt%"=="6" goto:sendto
 if /i "%opt%"=="7" goto:cleanup_pio
-if /i "%opt%"=="8" echo free && timeout 5 > NUL & goto:startmenu
+if /i "%opt%"=="8" goto:pip_update
 if /i "%opt%"=="9" goto:exit
 if /i "%opt%"=="0" goto:clearandexit
 echo Wrong choice, trink less beer :-P
@@ -191,6 +191,13 @@ for /L %%n in (1,1,!count!) DO (
   rem compile for each file here
   esphome run --no-logs !item_%%n!
 )
+goto:startmenu
+
+rem ################################################# 
+rem #### cleanup_pio                             ####
+rem #################################################
+:pip_update
+python.exe -m pip install --upgrade pip
 goto:startmenu
 
 rem ################################################# 
