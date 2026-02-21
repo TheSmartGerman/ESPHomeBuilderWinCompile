@@ -112,6 +112,7 @@ rem #### esphome update                          ####
 rem #################################################
 :update
 pip3 install esphome -U
+rem  pip install --upgrade --force-reinstall
 goto:startup0
 
 rem ################################################# 
