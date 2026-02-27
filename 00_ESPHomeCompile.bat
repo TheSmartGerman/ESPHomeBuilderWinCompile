@@ -21,10 +21,58 @@ if not exist %TMP%\ip.tmp (
   for /f "usebackq delims=" %%A in (%TMP%\ip.tmp) do set "hassip=%%A"
 )
 
+rem activete the virtual environment
+rem if not exist, create it and install esphome
+echo activate virtual environment...
+if exist "%APPDATA%\esphome\Scripts\activate.bat" (
+    call "%APPDATA%\esphome\Scripts\activate.bat"
+) else (
+    echo Virtual environment activation script not found: "%APPDATA%\esphome\Scripts\activate.bat"
+    :ask_venv
+    set /P opt="Would you like to create a new virtual environment? (y/n)"
+    set "opt=%opt:~0,1%"
+    echo You selected: %opt%
+    if /i "%opt%"=="n" (
+        echo Cannot continue without a virtual environment. Exiting...
+        exit /b
+    )
+    if /i "%opt%"=="y" (
+        echo Creating virtual environment...
+        python -m venv "%APPDATA%\esphome"
+        call "%APPDATA%\esphome\Scripts\activate.bat"
+    ) else (
+        echo Please answer y or n.
+        goto:ask_venv
+    )
+
+)
+
 rem read esphome local version
 echo Read ESPHome version...
 FOR /F "tokens=* USEBACKQ" %%F IN (`esphome version`) DO (
   SET ESPHOME_LOCAL=%%F
+)
+
+rem if local version is empty, ask for install
+if "%ESPHOME_LOCAL%" == "" (
+  echo Failed to read ESPHome version.
+  :ask_esphome_install
+  set /P opt="Do you want to install ESPHome? (y/n) "
+  if /i "%opt%"=="n" (
+      echo Cannot continue without ESPHome. Exiting...
+      exit /b
+  )
+  if /i "%opt%"=="y" (
+      pip install esphome
+      echo esphome version installed:
+      FOR /F "tokens=* USEBACKQ" %%G IN (`esphome version`) DO (
+          SET ESPHOME_LOCAL=%%G
+          echo %ESPHOME_LOCAL%
+      ) 
+      echo ESPHOME installed successfully.
+  ) else (
+      goto:ask_esphome_install
+  )
 )
 
 rem read esphome remote version
@@ -41,8 +89,8 @@ if "%ESPHOME_REMOTE%" NEQ "%ESPHOME_LOCAL%" (
   set opt=""
   set /P opt="Do you like to update (y/n)? "
   set "opt=%opt:~0,1%"
-  if /I "%opt%"=="y" goto:update
-  if /I "%opt%"=="n" (
+  if /i "%opt%"=="y" goto:update
+  if /i "%opt%"=="n" (
     echo Update skipped...  
     goto:startmenu
   )
@@ -91,8 +139,8 @@ echo ####                                         ####
 echo #################################################
 echo.
 
-  set /P opt="Your choice: "
-  set "opt=%opt:~0,1%"
+set /P opt="Your choice: "
+set "opt=%opt:~0,1%"
 color
 if /i "%opt%"=="1" goto:compile
 if /i "%opt%"=="2" goto:upall
@@ -213,6 +261,9 @@ rem #################################################
 rem ####  clear and exit                         ####
 rem #################################################
 :clearandexit
+if exist "%APPDATA%\esphome\Scripts\deactivate.bat" (
+    call "%APPDATA%\esphome\Scripts\deactivate.bat"
+)
 echo Cleaning up temporary files...
 timeout 10 > NUL
 rem del /f /s /q %TMP%\esphome\
