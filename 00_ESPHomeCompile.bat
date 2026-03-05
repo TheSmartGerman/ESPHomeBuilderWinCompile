@@ -131,7 +131,7 @@ echo ####   3 - update files of list              ####
 echo ####   4 - ESPHome update                    #### 
 echo ####   5 - Set HA-Server ipadress            #### 
 echo ####   6 - Copy To "sendto - entry"          ####
-echo ####   7 - pio prune                         ####
+echo ####   7 - Fix and clear menu                ####
 echo ####   8 - Update pip                        ####
 echo ####   9 - Exit without erase                ####
 echo ####   0 - Cleanup and Exit                  #### 
@@ -148,7 +148,7 @@ if /i "%opt%"=="3" goto:upall_list
 if /i "%opt%"=="4" goto:update
 if /i "%opt%"=="5" goto:ipadress
 if /i "%opt%"=="6" goto:sendto
-if /i "%opt%"=="7" goto:cleanup_pio
+if /i "%opt%"=="7" goto:fixandclear
 if /i "%opt%"=="8" goto:pip_update
 if /i "%opt%"=="9" goto:exit
 if /i "%opt%"=="0" goto:clearandexit
@@ -250,12 +250,73 @@ python.exe -m pip install --upgrade pip
 goto:startmenu
 
 rem ################################################# 
-rem #### cleanup_pio                             ####
+rem #### Fix and clear menue                     ####
 rem #################################################
-:cleanup_pio
+:fixandclear
+rem cls
+rem color 02
+echo. 
+echo ################################################### 
+echo ####                                           #### 
+echo ####     ESPHomeBuilder - Fix and Clear        ####
+echo ####                                           ####
+echo ################################################### 
+echo ####                                           #### 
+echo ####   1 - Delete ESPHome Virutal environment  ####
+echo ####   2 - Prune PIO                           ####
+echo ####   3 - Delete PIO Virtual environment      ####
+echo ####                                           #### 
+echo ###################################################
+echo.
+
+set /P opt="Your choice: "
+set "opt=%opt:~0,1%"
+color
+if /i "%opt%"=="1" goto:del_esphome_env
+if /i "%opt%"=="2" goto:pio_prune
+if /i "%opt%"=="3" goto:pio_del_penv
+echo Wrong choice, trink less beer :-P
+goto:fixandclear
+
+rem ################################################# 
+rem #### Delete ESPHome Virutal environment      ####
+rem #################################################
+:pio_prune
 rem pio system prune --dry-run
 pio system prune
-goto:startmenu
+goto:fixandclear
+
+rem ################################################# 
+rem #### Delete ESPHome Virutal environment      ####
+rem #################################################
+:del_esphome_env
+if exist "%APPDATA%\esphome\Scripts\deactivate.bat" (
+    call "%APPDATA%\esphome\Scripts\deactivate.bat"
+)
+timeout 3 > NUL
+rem del /f /s /q %APPDATA%\esphome\
+rmdir /s /q %APPDATA%\esphome\
+echo You need to restart the script to rebuild a new virtual environment!
+pause
+goto:fixandclear
+
+rem ################################################# 
+rem #### Prune PIO                              ####
+rem #################################################
+:pio_prune
+rem pio system prune --dry-run
+pio system prune
+goto:fixandclear
+
+rem ################################################# 
+rem #### Delete PIO Virtual environment          ####
+rem #################################################
+:pio_del_penv
+timeout 3 > NUL
+rem del /f /s /q %TMP%\esphome\
+rmdir /s /q %userdata%.platformio\penv
+goto:fixandclear
+
 
 rem ################################################# 
 rem ####  clear and exit                         ####
