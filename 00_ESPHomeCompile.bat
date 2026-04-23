@@ -1,5 +1,7 @@
  @echo off
 title ESPHome Win Compile
+rem change codepage
+chcp 65001
 rem https://community.home-assistant.io/t/compile-esphome-firmware-updates-on-a-windows-computer/675385
 
 rem run this only once to get parameters for drag and drop
